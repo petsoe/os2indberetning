@@ -19,12 +19,38 @@ namespace RandomReportGenerator
         {
             var service = NinjectWebKernel.CreateKernel().Get<IDriveReportService>();
             IGenericRepository<Person> _personRepo = NinjectWebKernel.CreateKernel().Get<IGenericRepository<Person>>();
+            IGenericRepository<DriveReport> _reportRepo = NinjectWebKernel.CreateKernel().Get<IGenericRepository<DriveReport>>();
 
-            for (int i = 0; i < 10000; i++)
+            var reportsToGenerate = 150000;
+
+            for (int i = 0; i < reportsToGenerate; i++)
             {
                 try {
-                    Console.WriteLine("Generating report " + i + " of " + 10000);
-                    service.Create(GetReport(_personRepo));
+                    Console.WriteLine("Generating report " + i + " of " + reportsToGenerate);
+                    var report = GetReport(_personRepo);
+                    service.Create(report);
+                    // Make every third report pending.
+
+                    if (i % 3 == 1)
+                    {
+                        // Make every third report accepted.
+                        Console.Write(" - Accepted report.");
+                        report.Status = ReportStatus.Accepted;
+                        report.ApprovedById = report.ResponsibleLeaderId;
+                        report.ClosedDateTimestamp = report.CreatedDateTimestamp + 10000;
+                        _reportRepo.Save();
+                    }
+
+                    if (i % 3 == 2)
+                    {
+                        // Make every third report rejected.
+                        Console.Write(" - Rejected report.");
+                        report.Status = ReportStatus.Accepted;
+                        report.ApprovedById = report.ResponsibleLeaderId;
+                        report.ClosedDateTimestamp = report.CreatedDateTimestamp + 10000;
+                        _reportRepo.Save();
+                    }
+
                 }
                 catch (Exception)
                 {
