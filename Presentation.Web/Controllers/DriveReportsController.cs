@@ -182,8 +182,8 @@ namespace OS2Indberetning.Controllers
                     Repo.Save();
                     _driveService.SendMailToUserAndApproverOfEditedReport(report, emailText, CurrentUser, "afvist");
                     return Ok();
-                } catch(Exception) {
-                    _logger.Log("Fejl under forsøg på at afvise en allerede godkendt indberetning.", "web");
+                } catch(Exception e) {
+                    _logger.Log("Fejl under forsøg på at afvise en allerede godkendt indberetning. Rapportens status er ikke ændret.", "web", e, 3);
                 }
             }
 
@@ -205,7 +205,7 @@ namespace OS2Indberetning.Controllers
             // User should not be allowed to change a Report which has been accepted or rejected.
             if (report.Status != ReportStatus.Pending)
             {
-                _logger.Log("Forsøg på at redigere indberetning med anden status end afventende.", "web");
+                _logger.Log("Forsøg på at redigere indberetning med anden status end afventende. Rapportens status er ikke ændret.", "web", 3);
                 return StatusCode(HttpStatusCode.Forbidden);
             }
 

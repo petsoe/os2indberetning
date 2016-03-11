@@ -60,13 +60,11 @@ namespace Core.ApplicationServices
         {
             if (report.PersonId == 0)
             {
-                _logger.Log("Forsøg på at oprette indberetning uden person angivet.", "web");
                 throw new Exception("No person provided");
             }
 
             if (!Validate(report))
             {
-                _logger.Log("Forsøg på at oprette indberetning med ugyldige parametre.", "web");
                 throw new Exception("DriveReport has some invalid parameters");
             }
 
@@ -214,7 +212,7 @@ namespace Core.ApplicationServices
                         recipient = report.Person.Mail;
                     } else
                     {
-                        _logger.Log("Forsøg på at sende mail om afvist indberetning til " + report.Person.FullName + ", men der findes ingen emailadresse.", "mail");
+                        _logger.Log("Forsøg på at sende mail om afvist indberetning til " + report.Person.FullName + ", men der findes ingen emailadresse. " + report.Person.FullName + " har derfor ikke modtaget en mailadvisering", "mail", 2);
                         throw new Exception("Forsøg på at sende mail til person uden emailaddresse");
                     }
                     var comment = new object();
@@ -401,15 +399,10 @@ namespace Core.ApplicationServices
             + "Med venlig hilsen " + admin.FullName + Environment.NewLine + Environment.NewLine
             + "Besked fra administrator: " + Environment.NewLine + emailText;
 
-            if (report.Person.RecieveMail)
-            {
-                _mailSender.SendMail(report.Person.Mail, "En administrator har ændret i din indberetning.", mailContent);
-            }
+            _mailSender.SendMail(report.Person.Mail, "En administrator har ændret i din indberetning.", mailContent);
 
-            if (report.ApprovedBy.RecieveMail)
-            {
-                _mailSender.SendMail(report.ApprovedBy.Mail, "En administrator har ændret i din indberetning.", mailContent);
-            }
+            _mailSender.SendMail(report.ApprovedBy.Mail, "En administrator har ændret i en indberetning du har godkendt.", mailContent);
+
 
 
         }

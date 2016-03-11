@@ -63,6 +63,9 @@
             /// Initializes fields for new report.
             /// </summary>
             $scope.DriveReport = new DriveReport();
+
+            $scope.DriveReport.KilometerAllowance = $rootScope.CurrentUser.Employments[0].OrgUnit.DefaultKilometerAllowance;
+
             $scope.DriveReport.Addresses = [];
             $scope.DriveReport.Addresses.push({ Name: "", Personal: "" });
             $scope.DriveReport.Addresses.push({ Name: "", Personal: "" });
@@ -190,14 +193,13 @@
 
                 $scope.DriveReport.KilometerAllowance = $scope.container.KilometerAllowanceDropDown._selectedValue;
 
-                firstMapLoad = false;
                 $scope.DriveReport.Purpose = report.Purpose;
                 $scope.DriveReport.Status = report.Status;
                 $scope.DriveReport.FourKmRule.Using = report.FourKmRule;
                 $scope.DriveReport.Date = moment.unix(report.DriveDateTimestamp)._d;
 
                 if (report.KilometerAllowance == "Read") {
-
+                    firstMapLoad = false;
 
                     $scope.DriveReport.UserComment = report.UserComment;
                     if (!report.StartsAtHome && !report.EndsAtHome) {
@@ -233,10 +235,11 @@
                     $scope.$on("kendoWidgetCreated", function (event, widget) {
                         if (widget === $scope.container.lastTextBox) {
                             mapChanging = false;
+                            firstMapLoad = false;
                             $scope.addressInputChanged();
                         }
                     });
-
+                    
                 }
 
                 $scope.DriveReport.IsRoundTrip = report.IsRoundTrip;
@@ -322,7 +325,7 @@
                 if (value.Type == "Home") {
                     // Store home address
                     $scope.HomeAddress = value;
-                    value.PresentationString += "Hjemmeadresse : ";
+                    value.PresentationString = "Hjemmeadresse : ";
                 }
                 if (value.Type == "AlternativeHome") {
                     // Overwrite home address if user has alternative home address.
@@ -332,7 +335,15 @@
                 value.PresentationString += value.StreetName + " " + value.StreetNumber + ", " + value.ZipCode + " " + value.Town;
                 value.address = value.StreetName + " " + value.StreetNumber + ", " + value.ZipCode + " " + value.Town;
             });
-            $scope.PersonalAddresses = res;
+
+            $scope.PersonalAddresses = new kendo.data.DataSource({
+                data: res,
+                sort: {
+                    field: "PresentationString",
+                    dir: "asc"
+                }
+            });
+
         }));
 
 
@@ -507,7 +518,7 @@
             /// Resolves address coordinates and updates map.
             /// </summary>
             /// <param name="index"></param>
-            if (!validateAddressInput(false) || mapChanging) {
+            if (!validateAddressInput(false) || mapChanging || firstMapLoad) {
                 return;
             }
 
@@ -639,7 +650,9 @@
                            
                         }
                     });
-                    OS2RouteMap.set($scope.mapStartAddress);
+                    if (!$scope.isEditingReport) {
+                        OS2RouteMap.set($scope.mapStartAddress);
+                    }
                 } else {
                     NotificationService.AutoFadeNotification("danger", "", "Kortet kunne ikke vises. Prøv at genopfriske siden.");
                 }
