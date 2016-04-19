@@ -76,6 +76,13 @@ namespace DBUpdater
         /// <returns>List of StreetName and StreetNumber</returns>
         public List<String> SplitAddressOnNumber(string address)
         {
+            var length = address.Split(' ').Length;
+            if (length < 2)
+            {
+                return new List<string>(){
+                    "Ugyldig adresse", "1"
+                };
+            }
             var result = new List<string>();
             var index = address.IndexOfAny("0123456789".ToCharArray());
             if (index == -1)
