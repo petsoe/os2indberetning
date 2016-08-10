@@ -1,10 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using Core.ApplicationServices;
-using Core.ApplicationServices.MailerService.Interface;
-using Core.DomainModel;
-using Core.DomainServices;
+﻿using Core.ApplicationServices;
 using Ninject;
 
 namespace Mail
