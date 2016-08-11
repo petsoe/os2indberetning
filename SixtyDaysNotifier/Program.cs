@@ -11,7 +11,7 @@ namespace SixtyDaysNotifier
         {
             var ninjectKernel = NinjectWebKernel.CreateKernel();
 
-            var service = new NotifierService(ninjectKernel.Get<IGenericRepository<DriveReport>>());
+            var service = new NotifierService(ninjectKernel.Get<IGenericRepository<DriveReport>>(), ninjectKernel.Get<IGenericRepository<Person>>());
 
             service.RunNotifierService();
             
