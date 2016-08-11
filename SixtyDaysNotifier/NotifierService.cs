@@ -20,7 +20,7 @@ namespace SixtyDaysNotifier
         internal void RunNotifierService()
         {
             var routeGeometry = _reportRepo.AsQueryable().Where(r => r.Purpose.Equals("MEGA TEST") );
-            
+            int i = 0;
         }
 
     }
