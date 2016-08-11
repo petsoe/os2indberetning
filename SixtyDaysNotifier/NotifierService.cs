@@ -62,6 +62,15 @@ namespace SixtyDaysNotifier
                 //inden man kører hjem. Så i dette tilfælde køres der fra A til C og fra A til D.
                 var driveReportPoints = report.DriveReportPoints;
                 //something something...
+                DriveReportPoint nextPoint;
+                if (report.StartsAtHome)
+                {
+                    nextPoint = driveReportPoints.AsQueryable().ElementAt(1);
+                }else
+                {
+                    nextPoint = driveReportPoints.AsQueryable().ElementAt(driveReportPoints.Count - 2);
+                }
+                //Tag højde for, at en rute maks kan tælles én gang om dagen. To ens ruter på samme dag, tæller altså kun én gang.
 
             }
 
