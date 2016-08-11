@@ -1,4 +1,6 @@
 ﻿using Core.ApplicationServices;
+using Core.DomainModel;
+using Core.DomainServices;
 using Ninject;
 
 namespace SixtyDaysNotifier
@@ -7,8 +9,10 @@ namespace SixtyDaysNotifier
     {
         static void Main(string[] args)
         {
-           
-            var service = NinjectWebKernel.CreateKernel().Get<NotifierService>();
+            var ninjectKernel = NinjectWebKernel.CreateKernel();
+
+            var service = new NotifierService(ninjectKernel.Get<IGenericRepository<DriveReport>>());
+
             service.RunNotifierService();
             
         }

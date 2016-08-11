@@ -10,16 +10,16 @@ namespace SixtyDaysNotifier
 {
     class NotifierService
     {
-        private IGenericRepository<DriveReport> reportRepo;
+        private IGenericRepository<DriveReport> _reportRepo;
 
         public NotifierService(IGenericRepository<DriveReport> reportRepo)
         {
-            this.reportRepo = reportRepo;
+            _reportRepo = reportRepo;
         }
 
         internal void RunNotifierService()
         {
-            var routeGeometry = reportRepo.AsQueryable().Where(r => r.Purpose.Equals("MEGA TEST") );
+            var routeGeometry = _reportRepo.AsQueryable().Where(r => r.Purpose.Equals("MEGA TEST") );
             
         }
 
