@@ -35,7 +35,7 @@ namespace SixtyDaysNotifier.Test
         }
         
         [Test]
-        public void FilterDriveReportsValidDrivereportsTest()
+        public void FilterDriveReportsNoDrivereportsTriggeredTest()
         {
             var amountOfDrivereportsToCreate = 3;
             driveReports = GenerateDriveReports(amountOfDrivereportsToCreate);
@@ -46,13 +46,15 @@ namespace SixtyDaysNotifier.Test
             
             var notifierService = new NotifierService(driveReportRepoMock, personRepoMock);
             receivedFromService = notifierService.GetReportsWhereSixtyDayRuleIsTriggered();
-            var personsFromService = receivedFromService.Keys;
+            //var personsFromService = receivedFromService.Keys;
+            Assert.IsEmpty(receivedFromService);
         }
 
         [Test]
-        public void FilterDriveReportsNoEndAtHomeorStartAtHomeTest()
-        {           
-            //driveReports = GenerateDriveReports(amountOfDrivereportsToCreate);
+        public void FilterDriveReportsDriveReportsTriggeredTest()
+        {
+            var amountOfDrivereportsToCreate = 65;
+            driveReports = GenerateDriveReports(amountOfDrivereportsToCreate);
             var drivereport = new DriveReport();
             drivereport.StartsAtHome = false;
             drivereport.EndsAtHome = false;
@@ -105,7 +107,7 @@ namespace SixtyDaysNotifier.Test
             for (var i = 0; i < amount; i++)
             {
                 var drivereport = new DriveReport();
-                drivereport.PersonId = i;
+                drivereport.PersonId = 0;
                 drivereport.CreatedDateTimestamp = todayAsTimeStamp;
                 drivereport.StartsAtHome = true;
                 var driveReportPoints = new List<DriveReportPoint>();
