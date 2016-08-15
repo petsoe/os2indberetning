@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SixtyDaysNotifier
 {
-    class NotifierService
+    public class NotifierService
     {
         private IGenericRepository<DriveReport> _reportRepo;
         private IGenericRepository<Person> _personRepo;
@@ -21,14 +21,18 @@ namespace SixtyDaysNotifier
 
         public void RunNotifierService()
         {
-            if (GetReportsWhereSixtyDayRuleIsTriggered().Count() > 0)
+            Dictionary<Person, int> personsAndAmount = GetReportsWhereSixtyDayRuleIsTriggered();
+            foreach(var person in personsAndAmount.Keys)
             {
-                //send mail om aktuelle antal kørseler
-            }
+                if (personsAndAmount[person] >= 60)
+                {
 
+                }
+            } 
+            
         }
 
-        private Dictionary<Person, int> GetReportsWhereSixtyDayRuleIsTriggered()
+        public Dictionary<Person, int> GetReportsWhereSixtyDayRuleIsTriggered()
         {
             var personToDriveReports = GetPersonToDriveReports();
 
@@ -36,45 +40,75 @@ namespace SixtyDaysNotifier
 
             foreach (var person in personToDriveReports.Keys)
             {
-                //Mail needs to be sent if 55 or more reports 
-                //if (personToDriveReports[person].Count() >= 55)
-                //{
-                var driveReports = personToDriveReports[person];
-                var filteredDriveReports = FilterDriveReports(driveReports);
-                // }
-                if (filteredDriveReports.Count >= 55)
+                var filteredDriveReports = new List<RoutePointPair>();
+
+                //Mail needs to be sent if 60 or more reports 
+                if (personToDriveReports[person].Count() >= 60)
                 {
-                    triggeredDriveReports.Add(person, filteredDriveReports.Count);
+                var driveReports = personToDriveReports[person];
+                filteredDriveReports = FilterDriveReports(driveReports);
+                 }
+
+                if (filteredDriveReports.Count >= 60)
+                {
+                    //Rasmus Rosendal kan du gøre noget smart her ud fra hvad vi snakkede om?
+                    //Ved ikke hvad den skal returnere :-)
+                    //triggeredDriveReports.Add(person, filteredDriveReports.Count);
                 }
             }
 
             return triggeredDriveReports;
         }
 
-        private List<DriveReport> FilterDriveReports(List<DriveReport> driveReports)
+        private List<RoutePointPair> FilterDriveReports(List<DriveReport> driveReports)
         {
-            var triggeredDriveReports = new List<DriveReport>();
+            var triggeredDriveReports = new List<RoutePointPair>();
 
             foreach (var report in driveReports)
             {
                 //Det er ikke endepunktet, der tages højde for, men den første adresse man kører til hjemmefra 
-                //– eller den sidste man har været på,
-                //inden man kører hjem. Så i dette tilfælde køres der fra A til C og fra A til D.
+                //– eller den sidste man har været på, inden man kører hjem.
+                // Det, der er vigtigt er, at hjemmeadressen skal være i den ene ende - 
+                //om det er start eller slut er lige meget. Men det er hjemmeadressen, der er vigtig. 
+                //Det er også vigtigt, at hvis den samme rute (med hjemmeadressen i den ene ende) køres flere gange på én dag,
+                //så tæller det stadig kun som en gang. Så det er vigtigt, at der tælles på dage og ikke på antal ruter.
+
                 var driveReportPoints = report.DriveReportPoints;
                 //something something...
                 DriveReportPoint nextPoint;
+                DriveReportPoint homeAdressPoint;
+                //We can be sure that the homeadress is present but it will either be in the start or in the end
                 if (report.StartsAtHome)
                 {
+                    homeAdressPoint = driveReportPoints.AsQueryable().ElementAt(0);
+                    //if startsathome -> the first adress after home is next point
                     nextPoint = driveReportPoints.AsQueryable().ElementAt(1);
                 }else
                 {
+                    homeAdressPoint = driveReportPoints.AsQueryable().ElementAt(driveReportPoints.Count - 1);
+                    //if endsathome -> the adress before home is next point
                     nextPoint = driveReportPoints.AsQueryable().ElementAt(driveReportPoints.Count - 2);
                 }
+                //Travelling from homeadress to endadress or from endadress to homeadress is considered the same in the sixtydays-rule
+                triggeredDriveReports.Add(new RoutePointPair(homeAdressPoint, nextPoint, FromUnixTime(report.CreatedDateTimestamp)));
                 //Tag højde for, at en rute maks kan tælles én gang om dagen. To ens ruter på samme dag, tæller altså kun én gang.
-
             }
 
             return triggeredDriveReports;
+        }
+
+        protected class RoutePointPair{
+            public DriveReportPoint home { get; set; }
+            public DriveReportPoint next { get; set; }
+            public DateTime createdDate { get; set; }
+            
+            public RoutePointPair(DriveReportPoint home, DriveReportPoint next, DateTime createdDate)
+            {
+                this.home = home;
+                this.next = next;
+                this.createdDate = createdDate;
+                
+            }
         }
 
         private Dictionary<Person, List<DriveReport>> GetPersonToDriveReports()
