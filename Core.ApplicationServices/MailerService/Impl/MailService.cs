@@ -28,6 +28,11 @@ namespace Core.ApplicationServices.MailerService.Impl
             _driveReportService = driveReportService;
             _logger = logger;
         }
+        public void SendTestMail(string to, string subject, string text)
+        {
+            _mailSender.SendTestMail(to,subject,text);
+        }
+        
 
         /// <summary>
         /// Sends an email to all leaders with pending reports to be approved.

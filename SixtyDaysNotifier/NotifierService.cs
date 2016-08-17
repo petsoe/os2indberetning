@@ -1,4 +1,5 @@
-﻿using Core.DomainModel;
+﻿using Core.ApplicationServices.MailerService.Interface;
+using Core.DomainModel;
 using Core.DomainServices;
 using System;
 using System.Collections.Generic;
@@ -12,23 +13,31 @@ namespace SixtyDaysNotifier
     {
         private IGenericRepository<DriveReport> _reportRepo;
         private IGenericRepository<Person> _personRepo;
+        //private IMailSender _mailSender;
+        private IMailService _mailService;
 
-        public NotifierService(IGenericRepository<DriveReport> reportRepo, IGenericRepository<Person> personRepo)
+        public NotifierService(IGenericRepository<DriveReport> reportRepo, IGenericRepository<Person> personRepo, IMailService mailService)
         {
+            _mailService = mailService;
             _reportRepo = reportRepo;
             _personRepo = personRepo;
         }
 
         public void RunNotifierService()
         {
-            Dictionary<Person, int> personsAndAmount = GetReportsWhereSixtyDayRuleIsTriggered();
-            foreach(var person in personsAndAmount.Keys)
-            {
-                if (personsAndAmount[person] >= 60)
-                {
+           // var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
 
-                }
-            } 
+           // _mailService.SendMails(today);
+            _mailService.SendTestMail("mhn@miracle.dk", "nothing", "hej");
+            //Dictionary<Person, int> personsAndAmount = GetReportsWhereSixtyDayRuleIsTriggered();
+            
+            //foreach (var person in personsAndAmount.Keys)
+            //{
+            //    if (personsAndAmount[person] >= 60)
+            //    {
+                    
+            //    }
+            //} 
             
         }
 

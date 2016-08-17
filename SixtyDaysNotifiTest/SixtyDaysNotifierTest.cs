@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Core.DomainModel;
 using NSubstitute;
 using Core.DomainServices;
+using Core.ApplicationServices.MailerService.Interface;
 
 namespace SixtyDaysNotifier.Test
 {
@@ -15,6 +16,7 @@ namespace SixtyDaysNotifier.Test
     {
         private IGenericRepository<Person> personRepoMock;
         private IGenericRepository<DriveReport> driveReportRepoMock;
+        private IMailService _mailServiceMock;
 
         private List<DriveReport> driveReports;
         private List<Person> persons;
@@ -26,7 +28,7 @@ namespace SixtyDaysNotifier.Test
            
             driveReportRepoMock = NSubstitute.Substitute.For<IGenericRepository<DriveReport>>();
             personRepoMock = NSubstitute.Substitute.For<IGenericRepository<Person>>();
-
+            _mailServiceMock = NSubstitute.Substitute.For<IMailService>();
             driveReports = new List<DriveReport>();
             persons = new List<Person>();
 
@@ -44,7 +46,7 @@ namespace SixtyDaysNotifier.Test
             driveReportRepoMock.AsQueryable().Returns(driveReports.AsQueryable());
             personRepoMock.AsQueryable().Returns(persons.AsQueryable());
             
-            var notifierService = new NotifierService(driveReportRepoMock, personRepoMock);
+            var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
             receivedFromService = notifierService.GetReportsWhereSixtyDayRuleIsTriggered();
             //var personsFromService = receivedFromService.Keys;
             Assert.IsEmpty(receivedFromService);
@@ -65,9 +67,40 @@ namespace SixtyDaysNotifier.Test
             driveReportRepoMock.AsQueryable().Returns(driveReports.AsQueryable());
             personRepoMock.AsQueryable().Returns(persons.AsQueryable());
 
-            var notifierService = new NotifierService(driveReportRepoMock, personRepoMock);
+            var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
             receivedFromService = notifierService.GetReportsWhereSixtyDayRuleIsTriggered();
             Assert.IsEmpty(receivedFromService);
+        }
+
+        [Test]
+        public void NotifierReceiveMailTest()
+        {
+            
+
+            var amountOfDrivereportsToCreate = 1;
+            driveReports = GenerateDriveReports(amountOfDrivereportsToCreate);
+            persons = GeneratePersons();
+            Assert.AreEqual(driveReports.Count, amountOfDrivereportsToCreate);
+            driveReportRepoMock.AsQueryable().Returns(driveReports.AsQueryable());
+            personRepoMock.AsQueryable().Returns(persons.AsQueryable());
+            var mailService = ;
+            var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
+            notifierService.RunNotifierService();
+            
+        }
+        [Test]
+        public void MailTestTest()
+        {
+            var amountOfDrivereportsToCreate = 1;
+            driveReports = GenerateDriveReports(amountOfDrivereportsToCreate);
+            persons = GeneratePersons();
+            Assert.AreEqual(driveReports.Count, amountOfDrivereportsToCreate);
+            driveReportRepoMock.AsQueryable().Returns(driveReports.AsQueryable());
+            personRepoMock.AsQueryable().Returns(persons.AsQueryable());
+
+            var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
+            notifierService.RunNotifierService();
+
         }
 
         private List<Person> GeneratePersons()

@@ -53,10 +53,45 @@ namespace Core.ApplicationServices.MailerService.Impl
             {
                 _smtpClient.Send(msg);
             }
-            catch (Exception e )
+            catch (Exception e)
             {
                 _logger.Log("Fejl under afsendelse af mail. Mail er ikke afsendt.", "mail", e, 1);
             }
+        }
+        public void SendTestMail(string to, string subject, string body)
+        {
+            if (String.IsNullOrWhiteSpace(to))
+            {
+                return;
+            }
+            var msg = new MailMessage();
+            msg.To.Add(to);
+            msg.From = new MailAddress("mhn@miracle.dk");
+            msg.Body = body;
+            msg.Subject = subject;
+
+            SmtpClient client = new SmtpClient("smtp.gmail.com");
+            client.Credentials = new NetworkCredential("mhn@miracle.dk", "Pratchett1");
+            //// Add credentials if the SMTP server requires them.
+            //client.Credentials = CredentialCache.DefaultNetworkCredentials;
+
+            try
+            {
+                client.Send(msg);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception caught in CreateMessageWithAttachment(): {0}",
+                            ex.ToString());
+            }
+            //try
+            //{
+            //    _smtpClient.Send(msg);
+            //}
+            //catch (Exception e)
+            //{
+            //    _logger.Log("Fejl under afsendelse af mail. Mail er ikke afsendt.", "mail", e, 1);
+            //}
         }
     }
 }
