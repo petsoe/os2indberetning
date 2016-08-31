@@ -83,7 +83,7 @@ namespace SixtyDaysNotifier.Test
             Assert.AreEqual(driveReports.Count, amountOfDrivereportsToCreate);
             driveReportRepoMock.AsQueryable().Returns(driveReports.AsQueryable());
             personRepoMock.AsQueryable().Returns(persons.AsQueryable());
-            var mailService = ;
+           // var mailService = ;
             var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
             notifierService.RunNotifierService();
             
