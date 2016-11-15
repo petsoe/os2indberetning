@@ -17,8 +17,8 @@ namespace ConsoleApplications.Test.LogMailer
         public void Read_CanReadAllLinesInLog()
         {
             var logReader = new LogReader();
-
-            var log = logReader.Read("LogMailer/web.log");
+            //todo: mhn Read the web.log file in Logmailer
+            var log = logReader.Read("Logmailer/web.log");
 
             Assert.AreEqual(6, log.Count());
 
