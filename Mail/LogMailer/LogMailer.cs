@@ -25,7 +25,7 @@ namespace Mail.LogMailer
 
         public void Send()
         {
-
+            //TODO: MHN: We need another solution for the DailyError mail. NOT using the content of the different logs
             var configvalue = ConfigurationManager.AppSettings["PROTECTED_DailyErrorLogMail"];
 
             configvalue = Regex.Replace(configvalue, @"\s+", "");

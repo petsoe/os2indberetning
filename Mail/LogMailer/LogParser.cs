@@ -12,6 +12,7 @@ namespace Mail.LogMailer
   
         public List<string> Messages(List<string> log, DateTime fromDate)
         {
+            //TODO: MHN we need another "DAILYERROR"-solution than this usage of a log
             var messages = new List<string>();
 
             foreach (var line in log)
