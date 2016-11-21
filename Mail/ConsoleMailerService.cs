@@ -75,12 +75,12 @@ namespace Mail
                     AttemptSendMails(_mailService,FromUnixTime(notification.PayRoleTimestamp), 2);
                 }
 
-
-
                 _repo.Save();
+                _logger.Log($"{this.GetType().Name}, RunMailerService(): notification mails sending finished", "mail", 3);
             }
             else
             {
+                _logger.Log($"{this.GetType().Name}, RunMailerService(): No notifications found for today", "mail", 3);
                 Console.WriteLine("Ingen email-adviseringer fundet! Programmet lukker om 3 sekunder.");
                 Console.WriteLine(Environment.CurrentDirectory);
                 Thread.Sleep(3000);

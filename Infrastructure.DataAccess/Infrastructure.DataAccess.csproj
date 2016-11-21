@@ -385,13 +385,21 @@
     <Compile Include="Migrations\201603011050474_AddedDefaultKilometerAllowanceToOrg.Designer.cs">
       <DependentUpon>201603011050474_AddedDefaultKilometerAllowanceToOrg.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201608221338359_HomeToBorderDistanceAddedToDriveReport.cs" />
+    <Compile Include="Migrations\201608221338359_HomeToBorderDistanceAddedToDriveReport.Designer.cs">
+      <DependentUpon>201608221338359_HomeToBorderDistanceAddedToDriveReport.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Example\ExampleRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CustomSettings.config">
-      <SubType>Designer</SubType>
+    <None Include="..\connections.config">
+      <Link>connections.config</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\CustomSettings.config">
+      <Link>CustomSettings.config</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
@@ -643,6 +651,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201603011050474_AddedDefaultKilometerAllowanceToOrg.resx">
       <DependentUpon>201603011050474_AddedDefaultKilometerAllowanceToOrg.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201608221338359_HomeToBorderDistanceAddedToDriveReport.resx">
+      <DependentUpon>201608221338359_HomeToBorderDistanceAddedToDriveReport.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

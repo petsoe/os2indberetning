@@ -36,14 +36,11 @@ namespace OS2Indberetning.Controllers
 
         protected override void Initialize(HttpControllerContext requestContext)
         {
+            _logger.Log("Before initialize Basecontroller. User.Identity.Name=" + User.Identity.Name, "web", 3);
             base.Initialize(requestContext);
 
 #if DEBUG
-            //string[] httpUser = @"syddjursnet\at".Split('\\'); // Fissirul Lehmann - administrator
-            string[] httpUser = new string[2];
-            httpUser[1] = "kvs";
-            httpUser[0] = "MIRACLE";
-
+            string[] httpUser = @"syddjursnet\at".Split('\\'); // Fissirul Lehmann - administrator
 #else
                 string[] httpUser = User.Identity.Name.Split('\\');                
 #endif
@@ -51,9 +48,7 @@ namespace OS2Indberetning.Controllers
             if (httpUser.Length == 2 && String.Equals(httpUser[0], ConfigurationManager.AppSettings["PROTECTED_AD_DOMAIN"], StringComparison.CurrentCultureIgnoreCase))
             {
                 var initials = httpUser[1].ToLower();
-                // DEBUG ON PRODUCTION. Set petsoe = lky
-                if (initials == "itmind" || initials == "jaoj" || initials == "mraitm") { initials = "ibuj"; }
-                // END DEBUG
+
                 CurrentUser = _personRepo.AsQueryable().FirstOrDefault(p => p.Initials.ToLower().Equals(initials));
                 if (CurrentUser == null)
                 {
