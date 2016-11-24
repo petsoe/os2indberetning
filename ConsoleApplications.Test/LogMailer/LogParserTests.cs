@@ -11,7 +11,7 @@ namespace ConsoleApplications.Test.LogMailer
     [TestFixture]
     public class LogParserTests
     {
-        //TODO: mhn: uncommented until new solution of DAILYERROR mail has been made
+        //TODO:MHN: UNcommented due to a new solution must be made
         //[Test]
         //public void Messages_CanParseSingleLine()
         //{

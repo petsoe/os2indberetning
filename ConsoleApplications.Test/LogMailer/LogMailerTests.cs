@@ -16,7 +16,7 @@ namespace ConsoleApplications.Test.LogMailer
     public class LogMailerTests
     {
 
-        //TODO: Mhn: Outcommented due to LogMailer not enabled. make new tests when new kind og mail solution has been made
+        //MHN:TODO: Uncommented due to LogMailer needs another solution
 //        [Test]
 //        public void Send_Everything()
 //        {
@@ -66,5 +66,5 @@ namespace ConsoleApplications.Test.LogMailer
 
 //        }
 
-    }
+   }
 }
