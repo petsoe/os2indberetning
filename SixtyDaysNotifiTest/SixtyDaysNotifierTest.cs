@@ -85,7 +85,7 @@ namespace SixtyDaysNotifier.Test
             personRepoMock.AsQueryable().Returns(persons.AsQueryable());
            // var mailService = ;
             var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
-            notifierService.RunNotifierService();
+            //notifierService.RunNotifierService();
             
         }
         [Test]
@@ -99,7 +99,7 @@ namespace SixtyDaysNotifier.Test
             personRepoMock.AsQueryable().Returns(persons.AsQueryable());
 
             var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
-            notifierService.RunNotifierService();
+           // notifierService.RunNotifierService();
 
         }
 

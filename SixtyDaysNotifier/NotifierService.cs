@@ -23,27 +23,39 @@ namespace SixtyDaysNotifier
             _personRepo = personRepo;
         }
 
-        public void RunNotifierService()
-        {
-           // var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
+        //public void RunNotifierService()
+        //{
+        //    // var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
 
-           // _mailService.SendMails(today);
-            _mailService.SendTestMail("mhn@miracle.dk", "nothing", "hej");
-            //Dictionary<Person, int> personsAndAmount = GetReportsWhereSixtyDayRuleIsTriggered();
-            
-            //foreach (var person in personsAndAmount.Keys)
-            //{
-            //    if (personsAndAmount[person] >= 60)
-            //    {
-                    
-            //    }
-            //} 
-            
+        //    // _mailService.SendMails(today);
+        //    //_mailService.SendTestMail("mhn@miracle.dk", "nothing", "hej");
+
+        //    Dictionary<Person, int> personsAndAmount = GetReportsWhereSixtyDayRuleIsTriggered();
+
+      
+
+        //}
+        public void SendMailAboutSixtyDaysViolation(Dictionary<Person, int> personsAndAmount)
+        {
+            //    // var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
+
+            //    // _mailService.SendMails(today);
+            //    //_mailService.SendTestMail("mhn@miracle.dk", "nothing", "hej");
+
+            //    Dictionary<Person, int> personsAndAmount = GetReportsWhereSixtyDayRuleIsTriggered();
+
+            foreach (var person in personsAndAmount.Keys)
+            {
+                if (personsAndAmount[person] >= 60)
+                {
+                   // _mailService.SendTestMail("mhn@miracle.dk", "nothing", "hej");
+                }
+            }
         }
 
-        public Dictionary<Person, int> GetReportsWhereSixtyDayRuleIsTriggered()
+        public Dictionary<Person, int> GetReportsWhereSixtyDayRuleIsTriggered(DateTime today)
         {
-            var personToDriveReports = GetPersonToDriveReports();
+            var personToDriveReports = GetPersonToDriveReportsFromLastYear(today);
 
             var triggeredDriveReports = new Dictionary<Person, int>();
 
@@ -69,13 +81,42 @@ namespace SixtyDaysNotifier
             return triggeredDriveReports;
         }
 
+        private Dictionary<Person, List<DriveReport>> GetPersonToDriveReportsFromLastYear(DateTime today)
+        {
+           
+            var twelveMonthsBack = today.AddMonths(-12);
+            var twelveMonthsBackAsTimestamp = ToUnixTime(twelveMonthsBack);
+
+            //We are only interested in reports made within the last 12 months and which starts or ends at home. At Syddjurs Kommune there are around 13000 reports
+            var driveReportsTwelveMonths = _reportRepo.AsQueryable().Where(r => r.CreatedDateTimestamp >= twelveMonthsBackAsTimestamp && (r.StartsAtHome || r.EndsAtHome) && (r.Status == ReportStatus.Accepted || r.Status == ReportStatus.Invoiced));
+           
+            //At SYddjurs Kommune persons = 6400
+            var persons = _personRepo.AsQueryable().Where(r => r.IsActive);
+
+            var personToDriveReports = new Dictionary<Person, List<DriveReport>>();
+            foreach (var person in persons.ToList())
+            {
+                var list = new List<DriveReport>();
+                foreach (var drive in driveReportsTwelveMonths.ToList())
+                {
+                    if (drive.PersonId == person.Id)
+                    {
+                        list.Add(drive);
+                    }
+                }
+                personToDriveReports.Add(person, list);
+            }
+            return personToDriveReports;
+        }
+
+
         private List<RoutePointPair> FilterDriveReports(List<DriveReport> driveReports)
         {
             var triggeredDriveReports = new List<RoutePointPair>();
 
             foreach (var report in driveReports)
             {
-                //Det er ikke endepunktet, der tages højde for, men den første adresse man kører til hjemmefra 
+                //FROM CUSTOMER: Det er ikke endepunktet, der tages højde for, men den første adresse man kører til hjemmefra 
                 //– eller den sidste man har været på, inden man kører hjem.
                 // Det, der er vigtigt er, at hjemmeadressen skal være i den ene ende - 
                 //om det er start eller slut er lige meget. Men det er hjemmeadressen, der er vigtig. 
@@ -119,34 +160,7 @@ namespace SixtyDaysNotifier
                 
             }
         }
-
-        private Dictionary<Person, List<DriveReport>> GetPersonToDriveReports()
-        {
-            var personToDriveReports = new Dictionary<Person, List<DriveReport>>();
-
-            var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
-            var twelveMonthsBack = today.AddMonths(-12);
-            var twelveMonthsBackAsTimestamp = ToUnixTime(twelveMonthsBack);
-
-            //We are only interested in reports made within the last 12 months and which starts or ends at home
-            var driveReportsTwelveMonths = _reportRepo.AsQueryable().Where(r => r.CreatedDateTimestamp >= twelveMonthsBackAsTimestamp && (r.StartsAtHome || r.EndsAtHome));
-            var persons = _personRepo.AsQueryable();
-
-            foreach (var person in persons.ToList())
-            {
-                var list = new List<DriveReport>();
-                foreach (var drive in driveReportsTwelveMonths.ToList())
-                {
-                    if (drive.PersonId == person.Id)
-                    {
-                        list.Add(drive);
-                    }
-                }
-                personToDriveReports.Add(person, list);
-            }
-            return personToDriveReports;
-        }
-
+        
         //}
 
         /// <summary>
