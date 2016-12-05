@@ -111,7 +111,6 @@
     <Content Include="Log4Net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="Mail_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <Content Include="CustomSettings.config">
       <SubType>Designer</SubType>

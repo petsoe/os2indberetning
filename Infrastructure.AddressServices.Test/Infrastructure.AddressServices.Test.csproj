@@ -64,10 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="CustomSettings.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="connections.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
