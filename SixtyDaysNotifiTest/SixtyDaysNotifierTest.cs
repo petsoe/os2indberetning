@@ -22,10 +22,12 @@ namespace SixtyDaysNotifier.Test
         private List<Person> persons;
         private Dictionary<Person, int> receivedFromService;
 
+        private DateTime today;
+
         [SetUp]
         public void SetUp()
         {
-           
+            today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
             driveReportRepoMock = NSubstitute.Substitute.For<IGenericRepository<DriveReport>>();
             personRepoMock = NSubstitute.Substitute.For<IGenericRepository<Person>>();
             _mailServiceMock = NSubstitute.Substitute.For<IMailService>();
@@ -35,7 +37,51 @@ namespace SixtyDaysNotifier.Test
             receivedFromService = new Dictionary<Person, int>();
 
         }
-        
+
+        [Test]
+        public void TestTest()
+        {
+            //1) Which method to be tested?
+            var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
+            //Dictionary<Person, int> dic = notifierService.GetReportsWhereSixtyDayRuleIsTriggered(today);
+            //2) Debug the test to see where it will go and verify that Nunit works...
+            //3) Find out where we need to mock things
+            
+            //(r => r.CreatedDateTimestamp >= twelveMonthsBackAsTimestamp && (r.StartsAtHome || r.EndsAtHome) && (r.Status == ReportStatus.Accepted || r.Status == ReportStatus.Invoiced)
+            // var persons = _personRepo.AsQueryable().Where(r => r.IsActive);
+            // driveReportRepoMock.AsQueryable().Returns(driveReports.AsQueryable());
+            //personRepoMock.AsQueryable().Returns(persons.AsQueryable());
+            //4) Create testdata - To begin with, just do it in the method. Everything will change anyway, so no need to try to do it corrrectly the first time
+            // GeneratePersons()
+            //GenerateDriveReports(2)
+            //5) Assert something
+
+        }
+        [Test]
+        public void TestTest2()
+        {
+            //1) Which method to be tested?
+            var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
+            driveReports = GenerateDriveReports(2);
+            persons = GeneratePersons();
+            driveReportRepoMock.AsQueryable().Returns(driveReports.AsQueryable());
+            personRepoMock.AsQueryable().Returns(persons.AsQueryable());
+      
+
+          
+
+            Dictionary<Person, int> dic = notifierService.GetReportsWhereSixtyDayRuleIsTriggered(today);
+           
+
+            //(r => r.CreatedDateTimestamp >= twelveMonthsBackAsTimestamp && (r.StartsAtHome || r.EndsAtHome) && (r.Status == ReportStatus.Accepted || r.Status == ReportStatus.Invoiced)
+         
+           
+            
+            //
+            //5) Assert something
+
+        }
+
         [Test]
         public void FilterDriveReportsNoDrivereportsTriggeredTest()
         {
@@ -47,7 +93,7 @@ namespace SixtyDaysNotifier.Test
             personRepoMock.AsQueryable().Returns(persons.AsQueryable());
             
             var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
-            receivedFromService = notifierService.GetReportsWhereSixtyDayRuleIsTriggered();
+            receivedFromService = notifierService.GetReportsWhereSixtyDayRuleIsTriggered(today);
             //var personsFromService = receivedFromService.Keys;
             Assert.IsEmpty(receivedFromService);
         }
@@ -68,7 +114,7 @@ namespace SixtyDaysNotifier.Test
             personRepoMock.AsQueryable().Returns(persons.AsQueryable());
 
             var notifierService = new NotifierService(driveReportRepoMock, personRepoMock, _mailServiceMock);
-            receivedFromService = notifierService.GetReportsWhereSixtyDayRuleIsTriggered();
+            receivedFromService = notifierService.GetReportsWhereSixtyDayRuleIsTriggered(today);
             Assert.IsEmpty(receivedFromService);
         }
 
@@ -111,6 +157,7 @@ namespace SixtyDaysNotifier.Test
             person1.FirstName = "Kalla";
             person1.LastName = "Anka";
             person1.Id = 0;
+            person1.IsActive = true;
             persons.Add(person1);
 
             var person2 = new Person();
