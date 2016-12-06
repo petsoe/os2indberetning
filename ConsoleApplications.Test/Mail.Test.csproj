@@ -76,9 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="LogMailer\web.log">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="LogMailer\web.log" />
     <None Include="packages.config" />
     <Content Include="PrivateSettings.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
