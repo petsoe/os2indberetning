@@ -130,8 +130,6 @@
     <Compile Include="DriveReportServiceTest\SubstituteRepositoryMock.cs" />
     <Compile Include="DriveReportServiceTest\EmploymentRepositoryMock.cs" />
     <Compile Include="DriveReportServiceTest\OrgUnitRepositoryMock.cs" />
-    <Compile Include="FileGenerator\FileRecordTest.cs" />
-    <Compile Include="FileGenerator\ReportGeneratorTest.cs" />
     <Compile Include="FileGenerator\ReportRepositoryMock.cs" />
     <Compile Include="LicensePlateTest\LicensePlateServiceTest.cs" />
     <Compile Include="OrgUnitServiceTest\GetChildOrgsWithoutLeaderTests.cs" />
@@ -142,7 +140,6 @@
     <Compile Include="RatePostServiceTest\RatePostServiceTest.cs" />
     <Compile Include="SubstituteServiceTest\SubstituteServiceTest.cs" />
     <Compile Include="ReimbursementCalculatorTest\ReimbursementCalculatorBaseTest.cs" />
-    <Compile Include="ReimbursementCalculatorTest\ReimbursementCalculatorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">
