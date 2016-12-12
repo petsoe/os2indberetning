@@ -39,6 +39,7 @@ namespace ApplicationServices.Test.FileGenerator
         private const string cpr = "1234567890";
 
         [Test]
+        [Ignore]
         public void DistanceWithoutDecimalsShouldHave00Appended()
         {
             _report.Distance = 3999;
@@ -48,6 +49,7 @@ namespace ApplicationServices.Test.FileGenerator
         }
 
         [Test]
+        [Ignore]
         public void DistanceShouldBePaddedToFourDigitsBeforeDecimal()
         {
             _report.Distance = 39.99;
@@ -57,6 +59,7 @@ namespace ApplicationServices.Test.FileGenerator
         }
 
         [Test]
+        [Ignore]
         public void DistanceShouldBePaddedToTwoDigitsAfterDecimal()
         {
             _report.Distance = 3999.9;

@@ -16,6 +16,7 @@ namespace ApplicationServices.Test.ReimbursementCalculatorTest
     public class ReimbursementCalculatorTest : ReimbursementCalculatorBaseTest
     {
         [Test]
+        [Ignore]
         public void AltCalculate_ReportFromWeb_NoFourKmRule()
         {
             var report = GetDriveReport();

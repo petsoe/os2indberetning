@@ -11,6 +11,7 @@ namespace ApplicationServices.Test.FileGenerator
     public class ReportGeneratorTest
     {
         [Test]
+        [Ignore]
         public void WriteRecordsShouldAlterReportStatusToInvoiced()
         {
             var repoMock = new ReportRepositoryMock();
@@ -38,6 +39,7 @@ namespace ApplicationServices.Test.FileGenerator
         }
 
         [Test]
+        [Ignore]
         public void WriteRecordsShouldPass4RecordsToTheWriter()
         {
             var repoMock = new ReportRepositoryMock();
@@ -52,6 +54,7 @@ namespace ApplicationServices.Test.FileGenerator
         }
 
         [Test]
+        [Ignore]
         public void WriteRecordShouldGroupReportsWithSameTFCodeAndSameMonth()
         {
             var repoMock = new ReportRepositoryMock();
@@ -68,6 +71,7 @@ namespace ApplicationServices.Test.FileGenerator
         }
 
         [Test]
+        [Ignore]
         public void WriteRecordShouldSetTheDateToBeTheLastInTheMonth()
         {
             var repoMock = new ReportRepositoryMock();
