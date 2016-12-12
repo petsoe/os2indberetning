@@ -98,10 +98,6 @@
       <Project>{3A54FD98-5ECF-47C1-98C1-D827CFEBA317}</Project>
       <Name>Core.DomainServices</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Infrastructure.DataAccess\Infrastructure.DataAccess.csproj">
-      <Project>{9914DB94-E465-4751-939C-8121C30AC945}</Project>
-      <Name>Infrastructure.DataAccess</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Mail\Mail.csproj">
       <Project>{f0c6c478-3a6a-405c-a193-9c498250cf2e}</Project>
       <Name>Mail</Name>

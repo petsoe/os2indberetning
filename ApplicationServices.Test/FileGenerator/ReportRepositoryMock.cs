@@ -17,6 +17,8 @@ namespace ApplicationServices.Test.FileGenerator
      */
     public class ReportRepositoryMock : GenericRepositoryMock<DriveReport>
     {
+
+
         public ReportRepositoryMock()
         {
             ReSeed();
