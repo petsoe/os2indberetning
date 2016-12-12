@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Core.DomainServices;
 
-namespace Presentation.Web.Test.Controllers
+namespace ConsoleApplications.Test
 {
     public abstract class GenericRepositoryMock<T> : IGenericRepository<T>
     {

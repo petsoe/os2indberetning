@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Core.DomainModel;
-using Presentation.Web.Test.Controllers;
 
 namespace ApplicationServices.Test.FileGenerator
 {

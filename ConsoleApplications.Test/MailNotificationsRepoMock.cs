@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.DomainModel;
-using Presentation.Web.Test.Controllers;
 
 namespace ConsoleApplications.Test.Mailer
 {

@@ -17,7 +17,6 @@ using NUnit.Framework;
 using OS2Indberetning;
 using Owin;
 using NSubstitute;
-using Presentation.Web.Test;
 using Substitute = NSubstitute.Substitute;
 
 namespace ApplicationServices.Test.DriveReportServiceTest

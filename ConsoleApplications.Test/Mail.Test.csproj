@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GenericRepositoryMock.cs" />
     <Compile Include="LogMailer\LogReaderTests.cs" />
     <Compile Include="LogMailer\LogParserTests.cs" />
     <Compile Include="LogMailer\LogMailerTests.cs" />

@@ -131,6 +131,7 @@
     <Compile Include="DriveReportServiceTest\EmploymentRepositoryMock.cs" />
     <Compile Include="DriveReportServiceTest\OrgUnitRepositoryMock.cs" />
     <Compile Include="FileGenerator\ReportRepositoryMock.cs" />
+    <Compile Include="GenericRepositoryMock.cs" />
     <Compile Include="LicensePlateTest\LicensePlateServiceTest.cs" />
     <Compile Include="OrgUnitServiceTest\GetChildOrgsWithoutLeaderTests.cs" />
     <Compile Include="OrgUnitServiceTest\GetWhereUserIsResponsibleTests.cs" />
@@ -168,10 +169,6 @@
     <ProjectReference Include="..\Infrastructure.AddressServices\Infrastructure.AddressServices.csproj">
       <Project>{720A3483-F089-4A45-830B-CED59F8CD1E7}</Project>
       <Name>Infrastructure.AddressServices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Infrastructure.DataAccess\Infrastructure.DataAccess.csproj">
-      <Project>{9914DB94-E465-4751-939C-8121C30AC945}</Project>
-      <Name>Infrastructure.DataAccess</Name>
     </ProjectReference>
     <ProjectReference Include="..\Presentation.Web\Presentation.Web.csproj">
       <Project>{2B953FAB-7F22-4884-9325-2A5C53519F3D}</Project>

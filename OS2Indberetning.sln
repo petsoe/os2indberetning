@@ -29,6 +29,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.AddressServices", "Infrastructure.AddressServices\Infrastructure.AddressServices.csproj", "{720A3483-F089-4A45-830B-CED59F8CD1E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationServices.Test", "ApplicationServices.Test\ApplicationServices.Test.csproj", "{B670D355-8423-4B20-8CBD-96404D8625B6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9914DB94-E465-4751-939C-8121C30AC945} = {9914DB94-E465-4751-939C-8121C30AC945}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EFB1501E-877D-4D4D-B810-9B75B376A065}"
 	ProjectSection(SolutionItems) = preProject
