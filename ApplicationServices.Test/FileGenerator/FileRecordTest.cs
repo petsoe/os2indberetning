@@ -67,7 +67,7 @@ namespace ApplicationServices.Test.FileGenerator
 
         private string getDistanceFromRecordString(string recordString)
         {
-            var distance = recordString.Substring(24, 6);
+            var distance = recordString.Substring(17, 6);
             return distance;
         }
     }

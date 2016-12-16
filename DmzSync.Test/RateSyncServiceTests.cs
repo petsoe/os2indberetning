@@ -49,29 +49,87 @@ namespace DmzSync.Test
         [Test]
         public void ClearDmz_ShouldCallDeleteRange()
         {
-            var numberOfReceivedCalls = 0;
-            _dmzRepoMock.WhenForAnyArgs(x => x.DeleteRange(_dmzRateList)).Do(p => numberOfReceivedCalls++);
-            _uut.ClearDmz();
-            Assert.AreEqual(1, numberOfReceivedCalls);
+            Assert.Throws<NotImplementedException>(() => _uut.ClearDmz());
+           
         }
 
         [Test]
-        public void SyncToDmz_ShouldInsertIntoDmz()
+        public void SyncToDmz_NoInitialRatesInDMZShouldInsertAllIntoDmz()
         {
+            var currentYear = DateTime.Now.Year;
+
+            ICollection<Core.DmzModel.DriveReport> driveReports = new List<Core.DmzModel.DriveReport>();
+
+            //One rate is already in DMZ, so I expect two Rates to be inserted
+            _dmzRepoMock.AsQueryable().ReturnsForAnyArgs(new List<Core.DmzModel.Rate>()
+                {
+              
+            }.AsQueryable());
+
             _masterRepoMock.AsQueryable().ReturnsForAnyArgs(new List<Core.DomainModel.Rate>()
             {
                 new Core.DomainModel.Rate()
                 {
                     Active = true,
                     Id = 1,
-                    Year = 2015,
+                    Year = currentYear,
                     Type = new RateType(){Description = "TEST"}
                 },
                 new Core.DomainModel.Rate()
                 {
                     Active = true,
                     Id = 2,
+                    Year = currentYear,
+                    Type = new RateType(){Description = "TEST"}
+                },
+                
+                new Core.DomainModel.Rate()
+                {
+                    Active = false,
+                    Id = 3,
                     Year = 2015,
+                    Type = new RateType(){Description = "TEST"}
+                }
+
+            }.AsQueryable());
+            _uut.SyncToDmz();
+            Assert.AreEqual(2, _dmzRateList.Count);
+        }
+
+        [Test]
+        public void SyncToDmz_OneInitialRateWithMatchingID()
+        {
+            var currentYear = DateTime.Now.Year;
+
+            ICollection<Core.DmzModel.DriveReport> driveReports = new List<Core.DmzModel.DriveReport>();
+
+            //One rate is already in DMZ, so I expect two Rates to be inserted
+            _dmzRepoMock.AsQueryable().ReturnsForAnyArgs(new List<Core.DmzModel.Rate>()
+            {
+                new Core.DmzModel.Rate()
+                {
+                    Description = "DMZTest",
+                    Id = 1,
+                    IsActive = true,
+                    Year = currentYear.ToString(),
+                    DriveReports = driveReports
+                }
+            }.AsQueryable());
+
+            _masterRepoMock.AsQueryable().ReturnsForAnyArgs(new List<Core.DomainModel.Rate>()
+            {
+                new Core.DomainModel.Rate()
+                {
+                    Active = true,
+                    Id = 1,
+                    Year = currentYear,
+                    Type = new RateType(){Description = "TEST"}
+                },
+                new Core.DomainModel.Rate()
+                {
+                    Active = true,
+                    Id = 2,
+                    Year = currentYear,
                     Type = new RateType(){Description = "TEST"}
                 },
                 new Core.DomainModel.Rate()
@@ -84,7 +142,57 @@ namespace DmzSync.Test
 
             }.AsQueryable());
             _uut.SyncToDmz();
-            Assert.AreEqual(2,_dmzRateList.Count);
+            
+            Assert.AreEqual(1, _dmzRateList.Count);
+        }
+
+        [Test]
+        public void SyncToDmz_OneInitialRateWithNotmatchingID()
+        {
+            var currentYear = DateTime.Now.Year;
+
+            ICollection<Core.DmzModel.DriveReport> driveReports = new List<Core.DmzModel.DriveReport>();
+
+            //One rate is already in DMZ, so I expect two Rates to be inserted
+            _dmzRepoMock.AsQueryable().ReturnsForAnyArgs(new List<Core.DmzModel.Rate>()
+            {
+                new Core.DmzModel.Rate()
+                {
+                    Description = "DMZTest",
+                    Id = 100,
+                    IsActive = true,
+                    Year = currentYear.ToString(),
+                    DriveReports = driveReports
+                }
+            }.AsQueryable());
+
+            _masterRepoMock.AsQueryable().ReturnsForAnyArgs(new List<Core.DomainModel.Rate>()
+            {
+                new Core.DomainModel.Rate()
+                {
+                    Active = true,
+                    Id = 1,
+                    Year = currentYear,
+                    Type = new RateType(){Description = "TEST"}
+                },
+                new Core.DomainModel.Rate()
+                {
+                    Active = true,
+                    Id = 2,
+                    Year = currentYear,
+                    Type = new RateType(){Description = "TEST"}
+                },
+                new Core.DomainModel.Rate()
+                {
+                    Active = false,
+                    Id = 3,
+                    Year = 2015,
+                    Type = new RateType(){Description = "TEST"}
+                }
+
+            }.AsQueryable());
+            _uut.SyncToDmz();
+            Assert.AreEqual(2, _dmzRateList.Count);
         }
     }
 }
