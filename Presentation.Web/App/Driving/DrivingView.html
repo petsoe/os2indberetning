@@ -54,7 +54,7 @@
                 <div class="col-sm-3">
                     <div class="form-group">
                         <label for="">Transportmiddel</label>
-                        <select class="fill-width" kendo-drop-down-list="container.KmRateDropDown" ng-change="transportChanged()" ng-model="DriveReport.KmRate" k-data-source="KmRateView" k-data-text-field="'Type.Description'" k-data-value-field="'Type.Id'" k-placeholder="'Vælg transportmiddel'"></select>
+                        <select class="fill-width" kendo-drop-down-list="container.KmRateDropDown" ng-change="transportChanged()" ng-model="DriveReport.KmRate" k-data-source="KmRate" k-data-text-field="'Type.Description'" k-data-value-field="'Id'" k-placeholder="'Vælg transportmiddel'"></select>
                     </div>
                 </div>
                 <div class="col-sm-5">
@@ -231,6 +231,14 @@
                 {{DrivenKMDisplay | FormatKmNumberString}} km
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <p class="text-primary">Det antal kilometer du får befordring for, udregnes efter Norddjurs Kommunes beregningsmetode, og det beregnede kilometer tal kan ses i listen under <a href="/#/myreports">Mine indberetninger</a>.</p>
+            </div>
+        </div>
+
+<!-- NDK
         <div class="row">
             <div class="col-sm-6">
                 <p class="text-primary">{{alternativeCalculationTextReimbursement}}</p>
@@ -253,6 +261,8 @@
 
             </div>
         </div>
+-->
+
     </div>
 
 </div>

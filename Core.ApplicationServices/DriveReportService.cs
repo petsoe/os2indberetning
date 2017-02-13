@@ -244,11 +244,13 @@ namespace Core.ApplicationServices
             var currentDateTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
           
             // Fix for bug that sometimes happens when drivereport is from app, where personid is set, but person is not.
-            var person = _employmentRepository.AsQueryable().First(x => x.PersonId == driveReport.PersonId).Person;
+            // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+            var person = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).First(x => x.PersonId == driveReport.PersonId).Person;
 
 
             // Fix for bug that sometimes happens when drivereport is from app, where personid is set, but person is not.
-            var empl = _employmentRepository.AsQueryable().First(x => x.Id == driveReport.EmploymentId);
+            // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+            var empl = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).First(x => x.Id == driveReport.EmploymentId);
 
             //Fetch personal approver for the person (Person and Leader of the substitute is the same)
             var personalApprover =
@@ -264,24 +266,22 @@ namespace Core.ApplicationServices
 
             //Find an org unit where the person is not the leader, and then find the leader of that org unit to attach to the drive report
             var orgUnit = _orgUnitRepository.AsQueryable().SingleOrDefault(o => o.Id == empl.OrgUnitId);
-            var leaderOfOrgUnit =
-                _employmentRepository.AsQueryable().FirstOrDefault(e => e.OrgUnit.Id == orgUnit.Id && e.IsLeader && e.StartDateTimestamp < currentDateTimestamp && (e.EndDateTimestamp > currentDateTimestamp || e.EndDateTimestamp == 0));
-
-            if (orgUnit == null)
-            {
+            if (orgUnit == null) {
                 return null;
             }
 
+            // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+            var leaderOfOrgUnit = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).FirstOrDefault(e => e.OrgUnit.Id == orgUnit.Id && e.IsLeader && e.StartDateTimestamp < currentDateTimestamp && (e.EndDateTimestamp > currentDateTimestamp || e.EndDateTimestamp == 0));
             var currentTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
             while ((leaderOfOrgUnit == null && orgUnit.Level > 0) || (leaderOfOrgUnit != null && leaderOfOrgUnit.PersonId == person.Id))
             {
-                leaderOfOrgUnit = _employmentRepository.AsQueryable().SingleOrDefault(e => e.OrgUnit.Id == orgUnit.ParentId && e.IsLeader &&
-                                                                                            e.StartDateTimestamp < currentTimestamp &&
-                                                                                            (e.EndDateTimestamp == 0 || e.EndDateTimestamp > currentTimestamp)); 
+                // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+                //leaderOfOrgUnit = _employmentRepository.AsQueryable().SingleOrDefault(e => e.OrgUnit.Id == orgUnit.ParentId && e.IsLeader && e.StartDateTimestamp < currentTimestamp && (e.EndDateTimestamp == 0 || e.EndDateTimestamp > currentTimestamp));
+                leaderOfOrgUnit = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).FirstOrDefault(e => e.OrgUnit.Id == orgUnit.ParentId && e.IsLeader && e.StartDateTimestamp < currentTimestamp && (e.EndDateTimestamp == 0 || e.EndDateTimestamp > currentTimestamp));
+                
                 orgUnit = orgUnit.Parent;
             }
-
 
             if (orgUnit == null)
             {
@@ -310,7 +310,8 @@ namespace Core.ApplicationServices
                     if(sub.Sub == null)
                     {
                         // This is a hack fix for a weird bug that happens, where sometimes the Sub navigation property on a Substitute is null, even though the SubId is not.
-                        sub.Sub = _employmentRepository.AsQueryable().FirstOrDefault(x => x.PersonId == sub.SubId).Person;
+                        // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+                        sub.Sub = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).FirstOrDefault(x => x.PersonId == sub.SubId).Person;
                     }
                     loopHasFinished = true;
                 }
@@ -331,15 +332,18 @@ namespace Core.ApplicationServices
             var currentDateTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
             // Fix for bug that sometimes happens when drivereport is from app, where personid is set, but person is not.
-            var person = _employmentRepository.AsQueryable().First(x => x.PersonId == driveReport.PersonId).Person;
+            // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+            var person = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).First(x => x.PersonId == driveReport.PersonId).Person;
 
             // Fix for bug that sometimes happens when drivereport is from app, where personid is set, but person is not.
-            var empl = _employmentRepository.AsQueryable().First(x => x.Id == driveReport.EmploymentId);
+            // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+            var empl = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).First(x => x.Id == driveReport.EmploymentId);
 
             //Find an org unit where the person is not the leader, and then find the leader of that org unit to attach to the drive report
             var orgUnit = _orgUnitRepository.AsQueryable().SingleOrDefault(o => o.Id == empl.OrgUnitId);
-            var leaderOfOrgUnit =
-                _employmentRepository.AsQueryable().FirstOrDefault(e => e.OrgUnit.Id == orgUnit.Id && e.IsLeader && e.StartDateTimestamp < currentDateTimestamp && (e.EndDateTimestamp > currentDateTimestamp || e.EndDateTimestamp == 0));
+
+            // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+            var leaderOfOrgUnit = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).FirstOrDefault(e => e.OrgUnit.Id == orgUnit.Id && e.IsLeader && e.StartDateTimestamp < currentDateTimestamp && (e.EndDateTimestamp > currentDateTimestamp || e.EndDateTimestamp == 0));
 
             if (orgUnit == null)
             {
@@ -350,9 +354,9 @@ namespace Core.ApplicationServices
 
             while ((leaderOfOrgUnit == null && orgUnit.Level > 0) || (leaderOfOrgUnit != null && leaderOfOrgUnit.PersonId == person.Id))
             {
-                leaderOfOrgUnit = _employmentRepository.AsQueryable().SingleOrDefault(e => e.OrgUnit.Id == orgUnit.ParentId && e.IsLeader &&
-                                                                                            e.StartDateTimestamp < currentTimestamp &&
-                                                                                            (e.EndDateTimestamp == 0 || e.EndDateTimestamp > currentTimestamp));
+                // Order the "employments" by the "EmploymentType" (0, 1 or 3), so we always get the lowest.
+                //leaderOfOrgUnit = _employmentRepository.AsQueryable().SingleOrDefault(e => e.OrgUnit.Id == orgUnit.ParentId && e.IsLeader && e.StartDateTimestamp < currentTimestamp && (e.EndDateTimestamp == 0 || e.EndDateTimestamp > currentTimestamp));
+                leaderOfOrgUnit = _employmentRepository.AsQueryable().OrderBy(e => e.EmploymentType).FirstOrDefault(e => e.OrgUnit.Id == orgUnit.ParentId && e.IsLeader && e.StartDateTimestamp < currentTimestamp && (e.EndDateTimestamp == 0 || e.EndDateTimestamp > currentTimestamp));
                 orgUnit = orgUnit.Parent;
             }
 

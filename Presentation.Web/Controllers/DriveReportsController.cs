@@ -73,8 +73,7 @@ namespace OS2Indberetning.Controllers
                         // If accepted reports are requested, then return accepted and invoiced. 
                         // Invoiced reports are accepted reports that have been processed for payment.
                         // So they are still accepted reports.
-                        queryable =
-                            queryable.Where(dr => dr.Status == ReportStatus.Accepted || dr.Status == ReportStatus.Invoiced);
+                        queryable = queryable.Where(dr => dr.Status == ReportStatus.Accepted || dr.Status == ReportStatus.Invoiced);
                     }
                     else
                     {
@@ -129,19 +128,16 @@ namespace OS2Indberetning.Controllers
         /// <returns></returns>
         [EnableQuery]
         public IHttpActionResult GetCalculationMethod()
-        {
-           
-            bool isAltCalc;
-            bool parseSucces = bool.TryParse(ConfigurationManager.AppSettings["AlternativeCalculationMethod"], out isAltCalc);
-
-            if (parseSucces)
+        {           
+            string isAltCalc = ConfigurationManager.AppSettings["AlternativeCalculationMethod"];
+            if (string.IsNullOrEmpty(isAltCalc) == false)
+            //bool parseSucces = bool.TryParse(ConfigurationManager.AppSettings["AlternativeCalculationMethod"], out isAltCalc);
+            //if (parseSucces)
             {
                 return Ok(isAltCalc);
-            }else
-            {
+            } else {
                 return Ok(false);
             }
-            
         }
 
         [HttpGet]
@@ -369,23 +365,43 @@ namespace OS2Indberetning.Controllers
         [EnableQuery]
         public new IHttpActionResult Post(DriveReport driveReport, string emailText)
         {
-            if(CurrentUser.IsAdmin && emailText != null && driveReport.Status == ReportStatus.Accepted)
-            {
-                // An admin is trying to edit an already approved report.
-                var adminEditResult = _driveService.Create(driveReport);
-                // CurrentUser is restored after the calculation.
-                _driveService.SendMailToUserAndApproverOfEditedReport(adminEditResult, emailText, CurrentUser, "redigeret");
-                return Ok(adminEditResult);
-            }
-
-            if (!CurrentUser.Id.Equals(driveReport.PersonId))
-            {
+            // Returns forbidden if the user associated with the posted report is not the current user.
+            if (!CurrentUser.Id.Equals(driveReport.PersonId)) {
                 return StatusCode(HttpStatusCode.Forbidden);
             }
 
-            var result = _driveService.Create(driveReport);
+            // Debug log.
+            _logger.Log(String.Format("DriveReportsController, Post(): Posted drive report {0}", driveReport.FullName), "web", 3);
 
-            return Ok(result);
+            if (CurrentUser.IsAdmin && emailText != null && driveReport.Status == ReportStatus.Accepted) {
+                // An admin is trying to edit an already approved report.
+                DriveReport result = null;
+                try {
+                    result = _driveService.Create(driveReport);
+
+                    // CurrentUser is restored after the calculation.
+                    _driveService.SendMailToUserAndApproverOfEditedReport(result, emailText, CurrentUser, "redigeret");
+                } catch (Exception exception) {
+                    // Debug log.
+                    _logger.Log(String.Format("DriveReportsController, Post(): Error: {0}", exception.Message), "web", 3);
+                }
+
+                // Debug log.
+                _logger.Log(String.Format("DriveReportsController, Post(): Return OK {0}", driveReport.FullName), "web", 3);
+                return Ok(result);
+            } else {
+                DriveReport result = null;
+                try {
+                    result = _driveService.Create(driveReport);
+                } catch (Exception exception) {
+                    // Debug log.
+                    _logger.Log(String.Format("DriveReportsController, Post(): Error: {0}", exception.Message), "web", 3);
+                }
+
+                // Debug log.
+                _logger.Log(String.Format("DriveReportsController, Post(): Return OK {0}", driveReport.FullName), "web", 3);
+                return Ok(result);
+            }
         }
 
         // PATCH: odata/DriveReports(5)

@@ -128,9 +128,11 @@ namespace Core.ApplicationServices
             }
 
             //Calculate distance to subtract
-            double toSubtract = 0;
+            double toSubtractFourKmRule = 0;
+            double toSubtractHomeRule = 0;
+            double toSubtractAltRule = 0;
 
-            //If user indicated to use the Four Km Rule
+            //If user indicated to use the Four KM Rule
             if (report.FourKmRule)
             {
                 //Take users provided distance from home to border of municipality. If report is from app, use distance provided in report, else use distance saved on person.
@@ -139,12 +141,12 @@ namespace Core.ApplicationServices
                 //Adjust distance based on if user starts or ends at home
                 if (report.StartsAtHome)
                 {
-                    toSubtract += borderDistance;
+                    toSubtractFourKmRule += borderDistance;
                 }
 
                 if (report.EndsAtHome)
                 {
-                    toSubtract += borderDistance;
+                    toSubtractFourKmRule += borderDistance;
                 }
             }
             else
@@ -152,12 +154,12 @@ namespace Core.ApplicationServices
                 //Same logic as above, but uses calculated distance between home and work
                 if (report.StartsAtHome)
                 {
-                    toSubtract += homeWorkDistance;
+                    toSubtractHomeRule += homeWorkDistance;
                 }
 
                 if (report.EndsAtHome)
                 {
-                    toSubtract += homeWorkDistance;
+                    toSubtractHomeRule += homeWorkDistance;
                 }
             }
 
@@ -165,65 +167,228 @@ namespace Core.ApplicationServices
             {
                 case KilometerAllowance.Calculated:
                     {
-                        // Norddjurs Kommune uses an alternative way of calculating the amount to reimburse. Instead of subtracting the distance from home to work from the driven distance,
-                        // either the home-to-destination or work-to-destination distance is used, which ever is shortest. This only applies to routes starting from home, in any other case
-                        // the standard calculation method is used.
-                        bool useNorddjursAltCalculation;
-                        bool parseSucces = bool.TryParse(ConfigurationManager.AppSettings["AlternativeCalculationMethod"], out useNorddjursAltCalculation);
-                        useNorddjursAltCalculation = parseSucces ? useNorddjursAltCalculation : false;
-
-                        // Use Norddjurs alternative reimbursemnt calculation method if configured so.
-                        if (useNorddjursAltCalculation)
+                        // Alternative calculating methods.
+                        string alternativeCalculationMethod = ConfigurationManager.AppSettings["AlternativeCalculationMethod"];
+                        if (alternativeCalculationMethod == null) alternativeCalculationMethod = string.Empty;
+                        switch (alternativeCalculationMethod.ToLower())
                         {
-                            // The alternative calculationmethod is only used for reports starting at home.
-                            if (report.StartsAtHome)
-                            {
-                                // Distance from home.
-                                var homeDistance = report.Distance;
-                                if (!report.IsFromApp)
-                                {
-                                    // In case the report is not from app then get distance from the supplied route.
-                                    homeDistance = drivenRoute.Length;
+                            case "true":    // Should be removed, when our config files is updated from boolean to string (name).
+                            case "ndk":
+                            case "norddjurs":
+                                // Norddjurs Kommune uses an alternative method of calculating the distance to reimburse.
+                                // Instead of just subtracting the daily distance from HOME to WORK from the driven distance, the shortest of
+                                // either HOME to LOCATION or WORK to LOCATION is used. The "daily "distance from HOME to WORK is newer subtracted!
+                                //
+                                // 1) When starting from home
+                                //    * To select which route is used, the shortest of either the distance between HOME and LOCATION or
+                                //      the distance between WORK and LOCATION, is selected.
+                                //      The LOCATION is always the second point on the drive route, because the first is HOME.
+                                //    * To calculate the distance to subtract, the total distance of the two routes is calculated.
+                                //
+                                // 2) When finishing at home
+                                //    * To select which route is used, the shortest of either the distance between LOCATION and HOME or
+                                //      the distance between LOCATION and WORK, is selected.
+                                //      The LOCATION is always the second last point on the drive route, because the last is HOME.
+                                //    * To calculate the distance to subtract, the total distance of the two routes is calculated.
+                                //
+                                // Both calculations can apply, when starting and finishing at home.
+
+                                // Newer subtract the "daily" distance between HOME and WORK.
+                                toSubtractHomeRule = 0.0;
+
+                                // Get the drive report points.
+                                List<DriveReportPoint> altDriveReportPoints = new List<DriveReportPoint>();
+                                foreach (DriveReportPoint altDriveReportPoint in report.DriveReportPoints) {
+                                    altDriveReportPoints.Add(altDriveReportPoint);
                                 }
 
-                                // Get distance from work.
-                                var addresses = new List<Address>();
-                                addresses.Add(workAddress);
-                                foreach (Address address in report.DriveReportPoints)
-                                {
-                                    if (!(address.Latitude == homeAddress.Latitude && address.Longitude == homeAddress.Longitude))
-                                    {
-                                        addresses.Add(address);
+                                // Get if a bike is used for transportation.
+                                Boolean altIsBike = _rateTypeRepo.AsQueryable().First(x => x.TFCode.Equals(report.TFCode)).IsBike;
+                                DriveReportTransportType altTransportType = (altIsBike == true) ? DriveReportTransportType.Bike : DriveReportTransportType.Car;
+                                Double altToSubtract1 = 0.0;
+                                Double altToSubtract2 = 0.0;
+
+                                // Debug log.
+                                _logger.Log(String.Format("**************************************************"), "web", 3);
+                                _logger.Log(String.Format("     Report Full name: {0}", report.FullName), "web", 3);
+                                _logger.Log(String.Format("       Report Comment: {0}", report.Comment), "web", 3);
+                                _logger.Log(String.Format("Report Starts at home: {0}", report.StartsAtHome), "web", 3);
+                                _logger.Log(String.Format("  Report Ends at home: {0}", report.EndsAtHome), "web", 3);
+                                _logger.Log(String.Format("Report Home to border: {0}", report.HomeToBorderDistance), "web", 3);
+                                _logger.Log(String.Format("      Report Distance: {0}", report.Distance), "web", 3);
+                                _logger.Log(String.Format("        Report Points: {0} points", report.DriveReportPoints.Count), "web", 3);
+                                foreach (DriveReportPoint driveReportPoint in altDriveReportPoints) {
+                                    _logger.Log(String.Format("          Description: {0}", driveReportPoint.Description), "web", 3);
+                                    _logger.Log(String.Format("             Position: Lat.: {0}  Long.: {1}", driveReportPoint.Latitude, driveReportPoint.Longitude), "web", 3);
+                                    _logger.Log(String.Format("              Address: {0} {1}", driveReportPoint.StreetName, driveReportPoint.StreetNumber), "web", 3);
+                                    _logger.Log(String.Format("                       {0} {1}", driveReportPoint.ZipCode, driveReportPoint.Town), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+                                }
+                                _logger.Log(String.Format("Report Route geometry: {0}", report.RouteGeometry), "web", 3);
+                                _logger.Log(String.Format(""), "web", 3);
+
+                                // 1. When starting from home
+                                if (    //(report.IsFromApp == false) &&
+                                    (report.StartsAtHome == true) &&
+                                    (altDriveReportPoints.Count >= 2) &&
+                                    ((altDriveReportPoints[1].Latitude != workAddress.Latitude) && (altDriveReportPoints[1].Longitude != workAddress.Longitude))) {
+                                    // A) Get the distance between HOME and the first LOCATION (the route in the report).
+                                    //    This is used to select the reported route, or the alternative route.
+                                    List<Address> altAddressesToHome = new List<Address>();
+                                    altAddressesToHome.Add(homeAddress);
+                                    altAddressesToHome.Add(altDriveReportPoints[1]);
+                                    Double altDistanceToHome = _route.GetRoute(altTransportType, altAddressesToHome).Length;
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("1) Start from HOME"), "web", 3);
+                                    _logger.Log(String.Format("   Calculate A - HOME to first LOCATION"), "web", 3);
+                                    foreach (Address address in altAddressesToHome) {
+                                        _logger.Log(String.Format("              Address: {0} {1}", address.StreetName, address.StreetNumber), "web", 3);
                                     }
+                                    _logger.Log(String.Format("             Distance: {0}", altDistanceToHome), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+
+                                    // A) Get the distance for the entire route (the route in the report).
+                                    //    This is used to calculate the distance to subtract.
+                                    altAddressesToHome = new List<Address>(altDriveReportPoints);
+                                    Double altDistanceA = _route.GetRoute(altTransportType, altAddressesToHome).Length;
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("   Calculate A - The reported route"), "web", 3);
+                                    foreach (Address address in altAddressesToHome) {
+                                        _logger.Log(String.Format("              Address: {0} {1}", address.StreetName, address.StreetNumber), "web", 3);
+                                    }
+                                    _logger.Log(String.Format("             Distance: {0}", altDistanceA), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+
+                                    // B) Get the distance between WORK and the first LOCATION.
+                                    //    This is used to select the reported route, or the alternative route.
+                                    List<Address> altAddressesToWork = new List<Address>();
+                                    altAddressesToWork.Add(workAddress);
+                                    altAddressesToWork.Add(altDriveReportPoints[1]);
+                                    Double altDistanceToWork = _route.GetRoute(altTransportType, altAddressesToWork).Length;
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("   Calculate B - WORK to first LOCATION"), "web", 3);
+                                    foreach (Address address in altAddressesToWork) {
+                                        _logger.Log(String.Format("              Address: {0} {1}", address.StreetName, address.StreetNumber), "web", 3);
+                                    }
+                                    _logger.Log(String.Format("             Distance: {0}", altDistanceToWork), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+
+                                    // B) Get the distance for the entire alternative route.
+                                    //    This is used to calculate the distance to subtract.
+                                    altAddressesToWork = new List<Address>(altDriveReportPoints);
+                                    altAddressesToWork[0] = workAddress;
+                                    Double altDistanceB = _route.GetRoute(altTransportType, altAddressesToWork).Length;
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("   Calculate B - The reported route, but starting from WORK"), "web", 3);
+                                    foreach (Address address in altAddressesToWork) {
+                                        _logger.Log(String.Format("              Address: {0} {1}", address.StreetName, address.StreetNumber), "web", 3);
+                                    }
+                                    _logger.Log(String.Format("             Distance: {0}", altDistanceB), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+
+                                    // The current report distance is including the route between HOME and LOCATION.
+                                    // Substract the difference, if the distance between WORK and LOCATION is smaller.
+                                    if (altDistanceToWork < altDistanceToHome) {
+                                        altToSubtract1 = (altDistanceA - altDistanceB);
+                                    }
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("         To substract: {0}", -altToSubtract1), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
                                 }
 
-                                var isBike = _rateTypeRepo.AsQueryable().First(x => x.TFCode.Equals(report.TFCode)).IsBike;
 
-                                var workDistance = _route.GetRoute(isBike ? DriveReportTransportType.Bike : DriveReportTransportType.Car, addresses).Length;
 
-                                // Compare the distance from home to the distance from work and apply the shortest of them.
-                                report.Distance = homeDistance < workDistance ? homeDistance : workDistance;
 
-                                if (!report.IsFromApp)
-                                {
-                                    //Get RouteGeometry from driven route if the report is not from app. If it is from App then RouteGeometry is already set.
-                                    report.RouteGeometry = drivenRoute.GeoPoints;
+                                // 2. When finishing at home
+                                if (    //(report.IsFromApp == false) &&
+                                    (report.EndsAtHome == true) &&
+                                    (altDriveReportPoints.Count >= 2) &&
+                                    ((altDriveReportPoints[altDriveReportPoints.Count - 2].Latitude != workAddress.Latitude) && (altDriveReportPoints[altDriveReportPoints.Count - 2].Longitude != workAddress.Longitude))) {
+                                    // A) Get the distance between the second last LOCATION and HOME (the route in the report).
+                                    //    This is used to select the reported route, or the alternative route.
+                                    List<Address> altAddressesToHome = new List<Address>();
+                                    altAddressesToHome.Add(altDriveReportPoints[altDriveReportPoints.Count - 2]);
+                                    altAddressesToHome.Add(homeAddress);
+                                    Double altDistanceToHome = _route.GetRoute(altTransportType, altAddressesToHome).Length;
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("2) Finish at HOME"), "web", 3);
+                                    _logger.Log(String.Format("   Calculate A - Last LOCATION to HOME"), "web", 3);
+                                    foreach (Address address in altAddressesToHome) {
+                                        _logger.Log(String.Format("              Address: {0} {1}", address.StreetName, address.StreetNumber), "web", 3);
+                                    }
+                                    _logger.Log(String.Format("             Distance: {0}", altDistanceToHome), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+
+                                    // A) Get the distance for the entire route (the route in the report).
+                                    //    This is used to calculate the distance to subtract.
+                                    altAddressesToHome = new List<Address>(altDriveReportPoints);
+                                    Double altDistanceA = _route.GetRoute(altTransportType, altAddressesToHome).Length;
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("   Calculate A - The reported route"), "web", 3);
+                                    foreach (Address address in altAddressesToHome) {
+                                        _logger.Log(String.Format("              Address: {0} {1}", address.StreetName, address.StreetNumber), "web", 3);
+                                    }
+                                    _logger.Log(String.Format("             Distance: {0}", altDistanceA), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+
+                                    // B) Get the distance between the second last LOCATION and WORK.
+                                    //    This is used to select the reported route, or the alternative route.
+                                    List<Address> altAddressesToWork = new List<Address>();
+                                    altAddressesToWork.Add(altDriveReportPoints[altDriveReportPoints.Count - 2]);
+                                    altAddressesToWork.Add(workAddress);
+                                    Double altDistanceToWork = _route.GetRoute(altTransportType, altAddressesToWork).Length;
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("   Calculate B - Last LOCATION to WORK"), "web", 3);
+                                    foreach (Address address in altAddressesToWork) {
+                                        _logger.Log(String.Format("              Address: {0} {1}", address.StreetName, address.StreetNumber), "web", 3);
+                                    }
+                                    _logger.Log(String.Format("             Distance: {0}", altDistanceToWork), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+
+                                    // B) Get the distance for the entire alternative route.
+                                    //    This is used to calculate the distance to subtract.
+                                    altAddressesToWork = new List<Address>(altDriveReportPoints);
+                                    altAddressesToWork[altAddressesToWork.Count - 1] = workAddress;
+                                    Double altDistanceB = _route.GetRoute(altTransportType, altAddressesToWork).Length;
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("   Calculate B - The reported route, but finishing at WORK"), "web", 3);
+                                    foreach (Address address in altAddressesToWork) {
+                                        _logger.Log(String.Format("              Address: {0} {1}", address.StreetName, address.StreetNumber), "web", 3);
+                                    }
+                                    _logger.Log(String.Format("             Distance: {0}", altDistanceB), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
+
+                                    // The current report distance is including the route between HOME and LOCATION.
+                                    // Substract the difference, if the distance between WORK and LOCATION is smaller.
+                                    if (altDistanceToWork < altDistanceToHome) {
+                                        altToSubtract2 = (altDistanceA - altDistanceB);
+                                    }
+
+                                    // Debug log.
+                                    _logger.Log(String.Format("         To substract: {0}", -altToSubtract2), "web", 3);
+                                    _logger.Log(String.Format(""), "web", 3);
                                 }
 
-                                break; 
-                            }
-                            else
-                            {
-                                if (!report.IsFromApp)
-                                {
-                                    report.Distance = drivenRoute.Length;
-
-                                    //Save RouteGeometry
-                                    report.RouteGeometry = drivenRoute.GeoPoints; 
-                                }
+                                // Subtract.
+                                toSubtractAltRule = altToSubtract1 + altToSubtract2;
 
                                 break;
-                            }
+                            case "":
+                                // No alternative calculation method.
+                                break;
+                            default:
+                                // Unknown alternative calculation method.
+                                throw new Exception("Invalid alternative calculatio method configured: " + alternativeCalculationMethod);
+                                break;
                         }
 
                         if ((report.StartsAtHome || report.EndsAtHome) && !report.FourKmRule)
@@ -239,10 +404,16 @@ namespace Core.ApplicationServices
                             drivenDistance = drivenRoute.Length;
                         }
                         //Adjust distance based on FourKmRule and if user start and/or ends at home
-                        var correctDistance = drivenDistance - toSubtract;
+                        var correctDistance = drivenDistance - (toSubtractFourKmRule + toSubtractHomeRule + toSubtractAltRule);
 
                         //Set distance to corrected
                         report.Distance = correctDistance;
+
+                        // Debug log.
+                        _logger.Log(String.Format("Subtract - 4 KM rule: {0}", toSubtractFourKmRule), "web", 3);
+                        _logger.Log(String.Format("Subtract - Home to work rule: {0}", toSubtractHomeRule), "web", 3);
+                        _logger.Log(String.Format("Subtract - Alternative rule: {0}", toSubtractAltRule), "web", 3);
+                        _logger.Log(String.Format("Subtract - Total: {0}", (toSubtractFourKmRule + toSubtractHomeRule + toSubtractAltRule)), "web", 3);
 
                         if (!report.IsFromApp)
                         {
@@ -259,7 +430,6 @@ namespace Core.ApplicationServices
                         //Save RouteGeometry
                         report.RouteGeometry = drivenRoute.GeoPoints;
 
-
                         break;
                     }
 
@@ -273,7 +443,14 @@ namespace Core.ApplicationServices
                         //Take distance from report
                         var manuallyProvidedDrivenDistance = report.Distance;
 
-                        report.Distance = manuallyProvidedDrivenDistance - toSubtract;
+                        //Set distance to corrected
+                        report.Distance = manuallyProvidedDrivenDistance - (toSubtractFourKmRule + toSubtractHomeRule + toSubtractAltRule);
+
+                        // Debug log.
+                        _logger.Log(String.Format("Subtract - 4 KM rule: {0}", toSubtractFourKmRule), "web", 3);
+                        _logger.Log(String.Format("Subtract - Home to work rule: {0}", toSubtractHomeRule), "web", 3);
+                        _logger.Log(String.Format("Subtract - Alternative rule: {0}", toSubtractAltRule), "web", 3);
+                        _logger.Log(String.Format("Subtract - Total: {0}", (toSubtractFourKmRule + toSubtractHomeRule + toSubtractAltRule)), "web", 3);
 
                         break;
                     }
@@ -284,7 +461,6 @@ namespace Core.ApplicationServices
             }
 
             //Calculate the actual amount to reimburse
-
             if (report.Distance < 0)
             {
                 report.Distance = 0;
@@ -301,7 +477,7 @@ namespace Core.ApplicationServices
                 report.Distance -= FourKmAdjustment;
             }
 
-             SetAmountToReimburse(report);
+            SetAmountToReimburse(report);
 
             return report;
         }

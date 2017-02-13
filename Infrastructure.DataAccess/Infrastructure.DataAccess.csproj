@@ -389,6 +389,10 @@
     <Compile Include="Migrations\201608221338359_HomeToBorderDistanceAddedToDriveReport.Designer.cs">
       <DependentUpon>201608221338359_HomeToBorderDistanceAddedToDriveReport.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201702130827349_EFfix.cs" />
+    <Compile Include="Migrations\201702130827349_EFfix.Designer.cs">
+      <DependentUpon>201702130827349_EFfix.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Example\ExampleRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -653,6 +657,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201608221338359_HomeToBorderDistanceAddedToDriveReport.resx">
       <DependentUpon>201608221338359_HomeToBorderDistanceAddedToDriveReport.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201702130827349_EFfix.resx">
+      <DependentUpon>201702130827349_EFfix.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

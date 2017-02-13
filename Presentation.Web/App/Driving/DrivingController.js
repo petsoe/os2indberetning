@@ -1,4 +1,5 @@
-﻿angular.module("application").controller("DrivingController", [
+﻿/// <reference path="DrivingView.html" />
+angular.module("application").controller("DrivingController", [
     "$scope", "Person", "PersonEmployments", "Rate", "LicensePlate", "PersonalRoute", "DriveReport", "Address", "SmartAdresseSource", "AddressFormatter", "$q", "ReportId", "$timeout", "NotificationService", "PersonalAddress", "$rootScope", "$modalInstance", "$window", "$modal", "$location", "adminEditCurrentUser",
     function ($scope, Person, PersonEmployments, Rate, LicensePlate, PersonalRoute, DriveReport, Address, SmartAdresseSource, AddressFormatter, $q, ReportId, $timeout, NotificationService, PersonalAddress, $rootScope, $modalInstance, $window, $modal, $location, adminEditCurrentUser) {
 
@@ -129,7 +130,7 @@
 
         var getKmRate = function () {
             for (var i = 0; i < $scope.KmRate.length; i++) {
-                if ($scope.KmRate[i].Type.Id == $scope.DriveReport.KmRate) {
+                if ($scope.KmRate[i].Id == $scope.DriveReport.KmRate) {
                     return $scope.KmRate[i];
                 }
             }
@@ -170,11 +171,7 @@
             $scope.DriveReport.FourKmRule = {};
             $scope.DriveReport.FourKmRule.Value = $scope.currentUser.DistanceFromHomeToBorder.toString().replace(".", ",");
             
-            if(report.EmploymentId != null){
-             // Set default DriveReport Position to position from previous report
-            $scope.DriveReport.Position = report.EmploymentId;
-            }
-          
+
             // Select position in dropdown.
             $scope.container.PositionDropDown.select(function (item) {
                 return item.Id == report.EmploymentId;
@@ -280,6 +277,13 @@
                 }
 
                 $scope.DriveReport.IsRoundTrip = report.IsRoundTrip;
+// NDK
+// Why is the distance calculated by the "ReimbursementCalculator" and placed in the report "Distance" property not used in this controller ?!
+// Okay, I figured it out - that is because a report object only exist, when editing a previously saved report.
+// Actually a not saved report object should be created even when the user creates a new report, and that should be sent to the server for calculation
+// when the user changes things and before the "updateDrivenKm" method is invoked.
+// This is to awoid calculating report distances two places - this should not be calculated in the UI.
+                $scope.DriveReport.distance = report.Distance;
             }
 
         }
@@ -300,21 +304,9 @@
         });
         $scope.Employments = currentUser.Employments;
 
-        // Load rates.
+        // Load this year's rates.
         loadingPromises.push(Rate.ThisYearsRates().$promise.then(function (res) {
             $scope.KmRate = res;
-
-            // create array with a single set of rates for the dropdown, since we only need the TF codes' description for this.
-            var tempRates = [];
-            var driveYear = new Date().getFullYear();
-            var j = 0;
-            for (var i = 0; i < $scope.KmRate.length; i++) {
-                if ($scope.KmRate[i].Year == driveYear) {
-                    tempRates[j] = $scope.KmRate[i];
-                    j++;
-                }
-            }
-            $scope.KmRateView = tempRates
         }));
 
         // Load user's license plates.
@@ -1012,25 +1004,36 @@
                     // If the route starts xor ends at home -> double the transportallowance.
                     // The case where the route both ends and starts at home is already covered.
                     if (routeStartsAtHome() != routeEndsAtHome()) {
-
                         $scope.TransportAllowance = Number($scope.TransportAllowance) * 2;
                     }
                 }
-                if ($scope.DriveReport.FourKmRule != undefined && $scope.DriveReport.FourKmRule.Using === true && $scope.DriveReport.FourKmRule.Value != undefined) {
-                    if (routeStartsAtHome() != routeEndsAtHome()) {
-                        if($scope.DriveReport.IsRoundTrip === true){
-                            $scope.TransportAllowance = (Number($scope.DriveReport.FourKmRule.Value.toString().replace(",", ".")) * 2) + fourKmAdjustment;
-                        }
-                        else{
-                            $scope.TransportAllowance = Number($scope.DriveReport.FourKmRule.Value.toString().replace(",", ".")) + fourKmAdjustment;
-                        }
-                    } else if (routeStartsAtHome() && routeEndsAtHome()) {
-                        $scope.TransportAllowance = (Number($scope.DriveReport.FourKmRule.Value.toString().replace(",", ".")) * 2) + fourKmAdjustment;
-                    } 
-                    else {
-                        $scope.TransportAllowance = fourKmAdjustment;
-                    }
+
+// NDK
+// I know this overrides the code above, and this only works when editing previously saved reports, until a report object always exist and
+// is calculated on the server.
+//
+// The original code writes incorrect distances for NDK, so perhaps it is better for us to write ZERO when the calculation is incorrect.
+                if ($scope.DriveReport.distance == undefined) {
+                    $scope.TransportAllowance = 0;
+                } else {
+                    $scope.TransportAllowance = $scope.DrivenKMDisplay - $scope.DriveReport.distance;
                 }
+
+//                if ($scope.DriveReport.FourKmRule != undefined && $scope.DriveReport.FourKmRule.Using === true && $scope.DriveReport.FourKmRule.Value != undefined) {
+//                    if (routeStartsAtHome() != routeEndsAtHome()) {
+//                        if($scope.DriveReport.IsRoundTrip === true){
+//                            $scope.TransportAllowance = (Number($scope.DriveReport.FourKmRule.Value.toString().replace(",", ".")) * 2) + fourKmAdjustment;
+//                        }
+//                        else{
+//                            $scope.TransportAllowance = Number($scope.DriveReport.FourKmRule.Value.toString().replace(",", ".")) + fourKmAdjustment;
+//                        }
+//                    } else if (routeStartsAtHome() && routeEndsAtHome()) {
+//                        $scope.TransportAllowance = (Number($scope.DriveReport.FourKmRule.Value.toString().replace(",", ".")) * 2) + fourKmAdjustment;
+//                    } 
+//                    else {
+//                        $scope.TransportAllowance = fourKmAdjustment;
+//                    }
+//                }
             });
         }
 
